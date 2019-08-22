@@ -154,6 +154,7 @@ def main():
     # uses while true to continously accept new arguments
     while True:
         replaySong()
+        
         if text:
             # converts to lower case which is equivalent to ignore case
             if text.lower() == 'resume':
@@ -255,11 +256,14 @@ def main():
                 # errors if music isnt playing                        
                 else:
                     redText('Music must be playing to adjust volume!')
+            else:
+                continue
         else:
             # if the sender enters a blank input just continues to prevent error
             continue
         text = None
 
+# seperate thread to detect input without pausing the entire main thread
 def inputThread():
     global text
     global reset
