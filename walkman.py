@@ -38,8 +38,10 @@ paused = True
 
 text = None
 
+reset = True
+
 # CHANGE CLIENT ID FOR RICH PRESENCE #
-client_id = ""
+client_id = "614207236096524329"
 RPC = Presence(client_id)
 RPC.connect()
 # CHANGE CLIENT ID FOR RICH PRESENCE #
@@ -133,15 +135,6 @@ def replaySong():
         RPC.update(details="Playing song:", state=playingSong, large_image='walkman', small_image='walkman_icon', large_text=playingSong, end=songLength(playingSong))
   
 def main():
-    # prints the welcome print
-
-    print(' __     __     ______     __         __  __     __    __     ______     __   __    ')
-    print('/\ \  _ \ \   /\  __ \   /\ \       /\ \/ /    /\ "-./  \   /\  __ \   /\ "-.\ \   ')
-    print('\ \ \/ ".\ \  \ \  __ \  \ \ \____  \ \  _"-.  \ \ \-./\ \  \ \  __ \  \ \ \-.  \  ')
-    print(' \ \__/".~\_\  \ \_\ \_\  \ \_____\  \ \_\ \_\  \ \_\ \ \_\  \ \_\ \_\  \ \_\\"\_\ ')
-    print('  \/_/   \/_/   \/_/\/_/   \/_____/   \/_/\/_/   \/_/  \/_/   \/_/\/_/   \/_/ \/_/ ')
-    print('                                                                                   ')
-
     # initiates colorama
     init()
 
@@ -156,6 +149,7 @@ def main():
     global dir
     global paused
     global text
+    global reset
     
     # uses while true to continously accept new arguments
     while True:
@@ -165,7 +159,6 @@ def main():
             if text.lower() == 'resume':
                 # resumes stopped music
                 if (pygame.mixer.music.get_busy()):
-                    print(pygame.mixer.music.get_busy())
                     paused = False
                     pygame.mixer.music.unpause()
                     greenText('Resumed the paused music!')
@@ -180,12 +173,12 @@ def main():
                 else:
                     redText('No music is currently playing!')
             elif text.lower() == 'list':
-                # lists all available songs
+                # lists all available songs            
                 print('\n')
                 greenText('Available Songs:')
+                print(Style.RESET_ALL + '\n')
                 for song in songs:
                     print(song)
-                print('\n')
             # uses starts with because this command requires the song arg
             elif text.lower() == 'reload':
                 reload()
@@ -269,20 +262,30 @@ def main():
 
 def inputThread():
     global text
+    global reset
+    
     while True:
-        text = input(
-            '______________________________ Commands ________________________________\n'
-            'resume          resumes the stopped song\n'
-            'stop            stops the current song\n'
-            'list            lists all available songs\n'
-            'reload          reloads the music list to detect for new songs\n'
-            'play <song>     starts playing music from the specified song\n'
-            'download <link> downloads the audio from a youtube video and stores\n'
-            '                in it the music folder\n'
-            'volume <amount> sets the volume to the specified amount (0 - 100)\n'
-            '________________________________________________________________________\n\n')
+        if reset is True:
+            text = input(
+                '______________________________ Commands ________________________________\n'
+                'resume          resumes the stopped song\n'
+                'stop            stops the current song\n'
+                'list            lists all available songs\n'
+                'reload          reloads the music list to detect for new songs\n'
+                'play <song>     starts playing music from the specified song\n'
+                'download <link> downloads the audio from a youtube video and stores\n'
+                '                in it the music folder\n'
+                'volume <amount> sets the volume to the specified amount (0 - 100)\n'
+                '________________________________________________________________________\n\n')
 
-if __name__ == "__main__":
+if __name__ == "__main__":  
+    print(' __     __     ______     __         __  __     __    __     ______     __   __    ')
+    print('/\ \  _ \ \   /\  __ \   /\ \       /\ \/ /    /\ "-./  \   /\  __ \   /\ "-.\ \   ')
+    print('\ \ \/ ".\ \  \ \  __ \  \ \ \____  \ \  _"-.  \ \ \-./\ \  \ \  __ \  \ \ \-.  \  ')
+    print(' \ \__/".~\_\  \ \_\ \_\  \ \_____\  \ \_\ \_\  \ \_\ \ \_\  \ \_\ \_\  \ \_\\"\_\ ')
+    print('  \/_/   \/_/   \/_/\/_/   \/_____/   \/_/\/_/   \/_/  \/_/   \/_/\/_/   \/_/ \/_/ ')
+    print('                                                                                   ')
+
     threading.Thread(target = inputThread).start()
     main()
 
