@@ -34,7 +34,7 @@ count = 0
 playingSong = ""
 
 # CHANGE CLIENT ID FOR RICH PRESENCE #
-client_id = ""
+client_id = "614163180783927314"
 RPC = Presence(client_id)
 RPC.connect()
 # CHANGE CLIENT ID FOR RICH PRESENCE #
@@ -118,12 +118,7 @@ def reload():
 
 def playingStatus():
     client = discord.Client()
-
-def updateRichPresence(songLength):
-    global playingSong
-    length = time.time() + songLength
-    RPC.update(details="Playing song:", state=playingSong, large_image='walkman', small_image='walkman_icon', end=length)
-                
+  
 def main():
     # prints the welcome print
 
@@ -200,11 +195,7 @@ def main():
                     # gets the first filtered song from the lambda and plays it
                     selectedSong = filteredList[0]
                     playSong(selectedSong)
-
-                    audio = MP3(dir + '/' + selectedSong + '.mp3')
-                    songLength = audio.info.length
-                    
-                    updateRichPresence(songLength)
+                    RPC.update(details="Playing song:", state=playingSong, large_image='walkman', small_image='walkman_icon', large_text=playingSong)
                 else:
                     # if no song is found prints error
                     redText("No song was found! Use 'list' to check for available songs!")
