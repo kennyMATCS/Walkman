@@ -34,7 +34,7 @@ count = 0
 playingSong = ""
 
 # CHANGE CLIENT ID FOR RICH PRESENCE #
-client_id = "614163180783927314"
+client_id = ""
 RPC = Presence(client_id)
 RPC.connect()
 # CHANGE CLIENT ID FOR RICH PRESENCE #
