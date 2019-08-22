@@ -6,10 +6,11 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 import keyboard
 import youtube_dl
-import multiprocessing
+import threading
 import discord
 import time
 from mutagen.mp3 import MP3
+from msvcrt import getch
 from colorama import Fore, Style, init
 from gtts import gTTS
 from playsound import playsound
@@ -33,8 +34,12 @@ count = 0
 
 playingSong = ""
 
+paused = True
+
+text = None
+
 # CHANGE CLIENT ID FOR RICH PRESENCE #
-client_id = "614163180783927314"
+client_id = ""
 RPC = Presence(client_id)
 RPC.connect()
 # CHANGE CLIENT ID FOR RICH PRESENCE #
@@ -97,7 +102,7 @@ def playSong(name):
     playingSong = name
     # loads and play music
     pygame.mixer.music.load(path)
-    pygame.mixer.music.play(-1)
+    pygame.mixer.music.play()
 
 # loops through the music folder and returns all mp3 files and stores it in the songs dictionary
 def getMusicFiles():
@@ -109,6 +114,10 @@ def getMusicFiles():
             # updates the dictionary with the directory of the song and the name
             songs.append(getStrippedDirectory(file))
 
+def songLength(song):
+    audio = MP3(dir + '/' + song + '.mp3')
+    return time.time() + audio.info.length
+
 # reloads the music files
 def reload():
     # clears the music list to prevent multiple copies of the same song
@@ -116,8 +125,12 @@ def reload():
     # finds all music files again
     getMusicFiles()
 
-def playingStatus():
-    client = discord.Client()
+def replaySong():
+    global paused
+    global playingSong
+    if pygame.mixer.music.get_busy() == 0 and paused is False:
+        playSong(playingSong)
+        RPC.update(details="Playing song:", state=playingSong, large_image='walkman', small_image='walkman_icon', large_text=playingSong, end=songLength(playingSong))
   
 def main():
     # prints the welcome print
@@ -141,26 +154,19 @@ def main():
     # gets the global variable of songs and directory
     global songs
     global dir
+    global paused
+    global text
     
     # uses while true to continously accept new arguments
     while True:
-        # sends this help message after every input or command is detected
-        text = input(
-                '______________________________ Commands ________________________________\n'
-                'resume          resumes the stopped song\n'
-                'stop            stops the current song\n'
-                'list            lists all available songs\n'
-                'reload          reloads the music list to detect for new songs\n'
-                'play <song>     starts playing music from the specified song\n'
-                'download <link> downloads the audio from a youtube video and stores\n'
-                '                in it the music folder\n'
-                'volume <amount> sets the volume to the specified amount (0 - 100)\n'
-                '________________________________________________________________________\n\n')
+        replaySong()
         if text:
             # converts to lower case which is equivalent to ignore case
             if text.lower() == 'resume':
                 # resumes stopped music
                 if (pygame.mixer.music.get_busy()):
+                    print(pygame.mixer.music.get_busy())
+                    paused = False
                     pygame.mixer.music.unpause()
                     greenText('Resumed the paused music!')
                 else:
@@ -168,6 +174,7 @@ def main():
             elif text.lower() == 'stop':
                 # stop music
                 if (pygame.mixer.music.get_busy()):
+                    paused = True
                     pygame.mixer.music.pause()
                     greenText('Stopped playing music!')
                 else:
@@ -195,7 +202,8 @@ def main():
                     # gets the first filtered song from the lambda and plays it
                     selectedSong = filteredList[0]
                     playSong(selectedSong)
-                    RPC.update(details="Playing song:", state=playingSong, large_image='walkman', small_image='walkman_icon', large_text=playingSong)
+                    paused = False
+                    RPC.update(details="Playing song:", state=playingSong, large_image='walkman', small_image='walkman_icon', large_text=playingSong, end=songLength(playingSong))
                 else:
                     # if no song is found prints error
                     redText("No song was found! Use 'list' to check for available songs!")
@@ -253,12 +261,28 @@ def main():
                         redText('You must input an integer between 0 and 100!')
                 # errors if music isnt playing                        
                 else:
-                    redText('Music must be playing to adjust volume!')          
+                    redText('Music must be playing to adjust volume!')
         else:
             # if the sender enters a blank input just continues to prevent error
             continue
+        text = None
+
+def inputThread():
+    global text
+    while True:
+        text = input(
+            '______________________________ Commands ________________________________\n'
+            'resume          resumes the stopped song\n'
+            'stop            stops the current song\n'
+            'list            lists all available songs\n'
+            'reload          reloads the music list to detect for new songs\n'
+            'play <song>     starts playing music from the specified song\n'
+            'download <link> downloads the audio from a youtube video and stores\n'
+            '                in it the music folder\n'
+            'volume <amount> sets the volume to the specified amount (0 - 100)\n'
+            '________________________________________________________________________\n\n')
 
 if __name__ == "__main__":
+    threading.Thread(target = inputThread).start()
     main()
-
 
