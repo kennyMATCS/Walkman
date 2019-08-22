@@ -4,29 +4,44 @@ import os
 # hides pygame support message
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
+import keyboard
 import youtube_dl
+import multiprocessing
+import discord
+import time
+from mutagen.mp3 import MP3
+from colorama import Fore, Style, init
+from gtts import gTTS
 from playsound import playsound
+from pypresence import Presence
 
-# async keyboard events for volume up and switching songs
-# download command
+########################################################################
+# CHANGE THIS DIRECTORY TO THE LOCATION YOU WOULD LIKE YOUR MUSIC TO BE#
+########################################################################
 
-#########################################################################
-# CHANGE THIS DIRECTORY TO THE LOCATION YOU WOULD LIKE YOUR MUSIC TO BE #
-#########################################################################
-
-# DO NOT REMOVE THE 'r'
-dir = r"C:\Users\kenny\Desktop\Walkman\music"                          
-# DO NOT REMOVE THE 'r'
+dir = r"D:\Projects\Walkman\music"                          
                                                                        
-#########################################################################
-# CHANGE THIS DIRECTORY TO THE LOCATION YOU WOULD LIKE YOUR MUSIC TO BE #
-#########################################################################
+########################################################################
+# CHANGE THIS DIRECTORY TO THE LOCATION YOU WOULD LIKE YOUR MUSIC TO BE#
+########################################################################
 
 # list of all song names
 songs = []
 
 # used for text to speech to fix same filename bug
 count = 0
+
+playingSong = ""
+
+# CHANGE CLIENT ID FOR RICH PRESENCE #
+client_id = "614163180783927314"
+RPC = Presence(client_id)
+RPC.connect()
+# CHANGE CLIENT ID FOR RICH PRESENCE #
+
+# initiates pygame
+pygame.mixer.init()
+pygame.mixer.music.set_volume(.05)
 
 # prints green text to console
 def greenText(text):
@@ -72,12 +87,14 @@ def getStrippedDirectory(dir):
 
 # plays a song based on the file argument
 def playSong(name):
+    global playingSong
     # global variable
     global dir
     # 'r' before fixes unicode error
     path = r"" + dir + "\\" + name + ".mp3"
     # prints playing song
     greenText('Now playing: ' + name + '.')
+    playingSong = name
     # loads and play music
     pygame.mixer.music.load(path)
     pygame.mixer.music.play(-1)
@@ -99,25 +116,29 @@ def reload():
     # finds all music files again
     getMusicFiles()
 
-# prints the welcome print
+def playingStatus():
+    client = discord.Client()
 
-print(' __     __     ______     __         __  __     __    __     ______     __   __    ')
-print('/\ \  _ \ \   /\  __ \   /\ \       /\ \/ /    /\ "-./  \   /\  __ \   /\ "-.\ \   ')
-print('\ \ \/ ".\ \  \ \  __ \  \ \ \____  \ \  _"-.  \ \ \-./\ \  \ \  __ \  \ \ \-.  \  ')
-print(' \ \__/".~\_\  \ \_\ \_\  \ \_____\  \ \_\ \_\  \ \_\ \ \_\  \ \_\ \_\  \ \_\\"\_\ ')
-print('  \/_/   \/_/   \/_/\/_/   \/_____/   \/_/\/_/   \/_/  \/_/   \/_/\/_/   \/_/ \/_/ ')
-print('                                                                                   ')
-
+def updateRichPresence(songLength):
+    global playingSong
+    length = time.time() + songLength
+    RPC.update(details="Playing song:", state=playingSong, large_image='walkman', small_image='walkman_icon', end=length)
+                
 def main():
+    # prints the welcome print
+
+    print(' __     __     ______     __         __  __     __    __     ______     __   __    ')
+    print('/\ \  _ \ \   /\  __ \   /\ \       /\ \/ /    /\ "-./  \   /\  __ \   /\ "-.\ \   ')
+    print('\ \ \/ ".\ \  \ \  __ \  \ \ \____  \ \  _"-.  \ \ \-./\ \  \ \  __ \  \ \ \-.  \  ')
+    print(' \ \__/".~\_\  \ \_\ \_\  \ \_____\  \ \_\ \_\  \ \_\ \ \_\  \ \_\ \_\  \ \_\\"\_\ ')
+    print('  \/_/   \/_/   \/_/\/_/   \/_____/   \/_/\/_/   \/_/  \/_/   \/_/\/_/   \/_/ \/_/ ')
+    print('                                                                                   ')
+
     # initiates colorama
     init()
 
     # loads the music files into the dictionary
     getMusicFiles()
-
-    # initiates pygame
-    pygame.mixer.init()
-    pygame.mixer.music.set_volume(.05)
     
     # plays a welcome message
     # textToSpeech('Welcome to walkman')
@@ -133,7 +154,6 @@ def main():
                 '______________________________ Commands ________________________________\n'
                 'resume          resumes the stopped song\n'
                 'stop            stops the current song\n'
-                'skip            skips the current song\n'
                 'list            lists all available songs\n'
                 'reload          reloads the music list to detect for new songs\n'
                 'play <song>     starts playing music from the specified song\n'
@@ -141,7 +161,6 @@ def main():
                 '                in it the music folder\n'
                 'volume <amount> sets the volume to the specified amount (0 - 100)\n'
                 '________________________________________________________________________\n\n')
-
         if text:
             # converts to lower case which is equivalent to ignore case
             if text.lower() == 'resume':
@@ -158,9 +177,6 @@ def main():
                     greenText('Stopped playing music!')
                 else:
                     redText('No music is currently playing!')
-            elif text.lower() == 'skip':
-                # skip music
-                greenText('Skipped the song!')
             elif text.lower() == 'list':
                 # lists all available songs
                 print('\n')
@@ -184,6 +200,11 @@ def main():
                     # gets the first filtered song from the lambda and plays it
                     selectedSong = filteredList[0]
                     playSong(selectedSong)
+
+                    audio = MP3(dir + '/' + selectedSong + '.mp3')
+                    songLength = audio.info.length
+                    
+                    updateRichPresence(songLength)
                 else:
                     # if no song is found prints error
                     redText("No song was found! Use 'list' to check for available songs!")
@@ -246,9 +267,7 @@ def main():
             # if the sender enters a blank input just continues to prevent error
             continue
 
-main()
+if __name__ == "__main__":
+    main()
 
 
-                 
-                 
-                 
