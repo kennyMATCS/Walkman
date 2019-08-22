@@ -57,7 +57,7 @@ def greenText(text):
     print(Fore.GREEN + text)
     # Style.RESET_ALL resets the color to default
     print(Style.RESET_ALL)
-
+          
 def redText(text):
     print('\n')
     # Fore.GREEN sets color to green
@@ -180,6 +180,7 @@ def main():
                 print(Style.RESET_ALL + '\n')
                 for song in songs:
                     print(song)
+                print(Style.RESET_ALL)
             # uses starts with because this command requires the song arg
             elif text.lower() == 'reload':
                 reload()
