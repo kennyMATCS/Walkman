@@ -50,6 +50,14 @@ pygame.mixer.music.set_volume(.05)
 def spacePrint(text):
     print('\n')
     print(text)
+
+def greenPrint(text):
+    spacePrint(Fore.GREEN + text)
+    print(Style.RESET_ALL)
+
+def redPrint(text):
+    spacePrint(Fore.RED + text)
+    print(Style.RESET_ALL)
     
 # plays a custom text to speech message
 def textToSpeech(textSpeech):
@@ -81,7 +89,7 @@ def playSong(name):
     # 'r' before fixes unicode error
     path = r"" + dir + "\\" + name + ".mp3"
     # prints playing song
-    spacePrint('Now playing: ' + name + '.')
+    greenPrint('Now playing: ' + name + '.')
     playingSong = name
     # loads and play music
     pygame.mixer.music.load(path)
@@ -126,12 +134,16 @@ def printCommands():
     'volume <amount> sets the volume to the specified amount (0 - 100)\n'
     '________________________________________________________________________\n\n')
 
-def replaySong():
+def updateSong():
     global paused
     global playingSong
+    # replays the song by default
     if pygame.mixer.music.get_busy() == 0 and paused is False:
         pygame.mixer.music.play()
-        RPC.update(details="Playing song:", state=playingSong, large_image='walkman2', small_image='walkman_icon', large_text=playingSong, end=songLength(playingSong))
+    elif pygame.mixer.music.get_busy() == 1 and paused is True:
+        RPC.update(details="Currently paused:", state=playingSong, large_image='walkman2', small_image='walkman_icon', large_text=playingSong)
+    elif pygame.mixer.music.get_busy() == 1:
+        RPC.update(details="Playing song:", state=playingSong, large_image='walkman2', small_image='walkman_icon', large_text=playingSong, end=songLength(playingSong) - pygame.mixer.music.get_pos() / 1000)
 
 
             
@@ -153,8 +165,7 @@ def main():
     global text
     
     while True:
-        # always runs replay song to make sure it's updated
-        replaySong()
+        updateSong()
         
         if text:
             # converts to lower case which is equivalent to ignore case
@@ -163,25 +174,25 @@ def main():
                 if (pygame.mixer.music.get_busy()):
                     paused = False
                     pygame.mixer.music.unpause()
-                    spacePrint('Resumed the paused music!')
+                    greenPrint('Resumed the paused music!')
                 else:
-                    spacePrint('No music is currently playing!')
+                    redPrint('No music is currently playing!')
             elif text.lower() == 'stop':
                 # stop music
                 if (pygame.mixer.music.get_busy()):
                     paused = True
                     pygame.mixer.music.pause()
-                    spacePrint('Stopped playing music!')
+                    greenPrint('Stopped playing music!')
                 else:
-                    spacePrint('No music is currently playing!')
+                    redPrint('No music is currently playing!')
             elif text.lower() == 'list':
                 # lists all available songs
-                spacePrint('Available Songs:')
+                greenPrint('Available Songs:')
                 printSongs()
             # uses starts with because this command requires the song arg
             elif text.lower() == 'reload':
                 reload()
-                spacePrint("Reloaded the music list! Use 'list' to check for new songs!")
+                greenPrint("Reloaded the music list! Use 'list' to check for new songs!")
             elif text.lower().startswith('play '):
                 # play music based on arg
                 # song is the arguments in the play command
@@ -195,10 +206,9 @@ def main():
                     selectedSong = filteredList[0]
                     playSong(selectedSong)
                     paused = False
-                    RPC.update(details="Playing song:", state=playingSong, large_image='walkman2', small_image='walkman_icon', large_text=playingSong, end=songLength(playingSong))
                 else:
                     # if no song is found prints error
-                    spacePrint("No song was found! Use 'list' to check for available songs!")
+                    redPrint("No song was found! Use 'list' to check for available songs!")
             # uses starts with because this command requires the song arg
             elif text.lower().startswith('download '):
                 # downloads youtube audio from the link
@@ -219,13 +229,13 @@ def main():
                 # downloads audio
                 with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                     try:
-                        spacePrint('Downloading...')
+                        greenPrint('Downloading...')
                         ydl.download([link])
                     except youtube_dl.DownloadError as e:
                         continue
                 # reloads music files
                 reload()
-                spacePrint('Sucessfully downloaded the song from ' + link + ' and reloaded the music files!')
+                greenPrint('Sucessfully downloaded the song from ' + link + ' and reloaded the music files!')
             # uses starts with because this command requires the song arg
             elif text.lower().startswith('volume '):
                 # checks if music is playing
@@ -241,19 +251,19 @@ def main():
                             # sets the volume
                             if (volume == 0):
                                 pygame.mixer.music.set_volume(0)
-                                spacePrint('Volume set to 0!')
+                                greenPrint('Volume set to 0!')
                             else:   
                                 pygame.mixer.music.set_volume(volume / 100)
-                                spacePrint('Volume set to ' + volumeText + '!')
+                                greenPrint('Volume set to ' + volumeText + '!')
                         else:
                             # sends if volume isnt between 1 and 100
-                            spacePrint('The volume must be between 0 and 100!')
+                            redPrint('The volume must be between 0 and 100!')
                     else:
                         # sends if the text inputted isn't an int
-                        spacePrint('You must input an integer between 0 and 100!')
+                        redPrint('You must input an integer between 0 and 100!')
                 # errors if music isnt playing                        
                 else:
-                    spacePrint('Music must be playing to adjust volume!')
+                    redPrint('Music must be playing to adjust volume!')
             printCommands()
             text = None    
         else:
